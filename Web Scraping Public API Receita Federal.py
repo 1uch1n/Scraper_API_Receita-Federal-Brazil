@@ -1,5 +1,6 @@
 # Auteur : Louis Leclerc
-# Date : 26/05/2020
+# Creation date : 26/05/2020
+# Last update : 02/10/2020
 # Description :
     # programme d'extraction des données d'entreprises brésiliennes (nom, activité, dirigeants, adresse...)
     # à partir de leur numéro d'enregistrement (le CNPJ)
