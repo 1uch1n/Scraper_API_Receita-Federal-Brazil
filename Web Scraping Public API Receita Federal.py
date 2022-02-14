@@ -1,11 +1,12 @@
-# Author: Louis Leclerc
+# Author: 1uch1n (1uch1n@protonmail.com)
 # Creation date: 26/05/2020
-# Last update: 02/10/2020
+# Last update: 14/02/2022
 # Description:
     # scraper of Brazilian companies data (name, activity, directors, address...)
-    # input = tax registration number (CNPJ)
     # from the Federal Tax Registry's API (Receita Federal Web Services)
+    # which takes tax registration numbers (CNPJ) as inputs
     # more info on https://www.receitaws.com.br/api
+
 
 import requests
 import json
@@ -13,23 +14,26 @@ import datetime
 import time
 import os
 
-# defining file path
-# os.chdir("/FILE/PATH")
+# define file path
+os.chdir(input('Location of the input file?\n->'))
 
-# defining input file (has to be a one-column list of names in csv format)
-# my_file = "FILE_NAME.csv"
+# define name of the input file
+# the input file has to be a one-column list of names in csv format
+my_file = input('File name?\n->')
 
 url_receita = "https://www.receitaws.com.br/v1/cnpj/"
 error_message = "Invalid CNPJ"
 
 # token only necessary if using the paying services of the API (> 3 requests/s)
-# token = {"Authorization":"token 607035d8e2dbd7e6b6b57234b3c905b44d6e73fd470e8d183993f0448c294dc2"}
+token = {"Authorization":"token 607035d8e2dbd7e6b6b57234b3c905b44d6e73fd470e8d183993f0448c294dc2"}
 
 # set d_day to today if using the paying API
-# d_day = datetime.date.today()-datetime.date(YEAR, MONTH, DAY)
+d_day = datetime.date.today()
 
-# function returning a valid API request URL from any CNPJ
+
 def correct_url(cnpj):
+    ''' return a valid API request URL from any CNPJ'''
+
     if cnpj.isalnum()==False:
         new_cnpj= ""
         for i in cnpj:
@@ -46,12 +50,14 @@ def correct_url(cnpj):
     else:
         return False
 
-# function returning a list of the company's data from its CNPJ
+
 def scraping_page(url):
+    '''return a list of the company's data from its CNPJ'''
+
     if url == False:
         return error_message
     else:
-        response = requests.get(url) #requests.get(url, headers=token) for the paying API
+        response = requests.get(url) # + argument headers=token for the paying API
         page_content = response.text
         dct = json.loads(page_content)
         clefs= dct.keys()
@@ -60,25 +66,27 @@ def scraping_page(url):
         corpo_id = list(corpo_id)
         return corpo_id
 
-# function returning a CSV of CNPJs (without any other information) and returns a list of those CNPJs
+
 def file_cnpj(file):
+    ''' return a CSV of CNPJs (without any other information)'''
     with open(file, encoding="utf-8") as f:
         res = f.read().splitlines()
     return res
 
-# general function scrapping data from a list of CNPJs
-# respects the 3 request/sec limit of the free API
 def scrap_list(cnpj_list):
+    '''scrap data from a list of CNPJs and observe the 3 request/sec limit of the free API'''
+
     request_nb = 0
     res=[]
     for i in cnpj_list:
-        if request_nb<3: #change max number of requests if using the paying API
+        # change max number of requests if using the paying API
+        if request_nb<3:
             res.append(scraping_page(correct_url(i)))
             request_nb+=1
         else:
             time.sleep(60)
             res.append(scraping_page(correct_url(i)))
-            requetes = 1
+            request_nb = 0
     return res
 
 print(scrap_list(file_cnpj(my_file)))
